@@ -1,0 +1,257 @@
+GameView.addPoints(game, Color.GREEN,
+				game.getNeighbouringNodes(activePills[37]));
+		GameView.addPoints(game, Color.GREEN, 930);
+
+		
+		
+		
+		
+		if (game.isJunction(currentIndex)) {
+			/* Get the index of the surrounding nodes */
+			// listofNext = game.getNeighbouringNodes(currentIndex);
+			/* Get the selection of next moves from PacMans position */
+			nextMoves = game.getPossibleMoves(currentIndex);
+			/*
+			 * for (int i = 0; i < listofNext.length; i++)
+			 * System.out.println(listofNext[i]);
+			 */
+			// myMove = direction(Steps(game, 3));
+			myMove = game.getMoveToMakeToReachDirectNeighbour(currentIndex,
+					Steps(game, 7));
+			/* Get the location & direction of each ghost */
+			/*
+			 * int i = 0; for(Constants.GHOST c: Constants.GHOST.values()){
+			 * game.getGhostCurrentNodeIndex(c); GhostDirection[i] =
+			 * game.getGhostLastMoveMade(c); i++;
+			 * 
+			 * }
+			 */
+
+		}
+		//
+		// TODO - use the nearest pill to get the next pill (me thinks)
+		// getClosestNodeIndexFromNodeIndex
+		//
+
+		/*
+		 * If at a junction otherwise move in the desired direction
+		 */
+		previousIndex = currentIndex;
+		return myMove;
+	}
+
+	MOVE direction(int index) {
+		if (index == 0)
+			return MOVE.UP;
+		else if (index == 1)
+			return MOVE.RIGHT;
+		else if (index == 2)
+			return MOVE.DOWN;
+		else if (index == 3)
+			return MOVE.LEFT;
+		else
+			return MOVE.NEUTRAL;
+	}
+
+	int determinePillValue(Game game, int index) {
+		if (game.getPillIndex(index) != -1)
+			return 1;
+		else
+			return 0;
+
+	}
+	
+	int Steps(Game game, int steps) {
+		int start = game.getPacmanCurrentNodeIndex();
+		int next[];
+		int pathValue[] = { 0, 0, 0, 0 };
+		/*
+		 * Given a starting node for each step locate all neighbouring nodes
+		 * follow path until steps expires/junction reached totaling score
+		 */
+		next = game.getNeighbouringNodes(start);
+		int previous = start;
+		for (int j = 0; j < next.length; j++) {
+			int counter = 0;
+			/* outerloop: */for (int i = 0; i < steps; i++) {
+				int temp[] = game.getNeighbouringNodes(next[j]);
+				for (int k = 0; k < temp.length; k++) {
+					// if (temp[k] != previous) {
+					counter += determinePillValue(game, temp[k]);
+					// if (game.isJunction(temp[k])) {
+					// System.out.println("Breaking");
+					// break outerloop;// /return value;*/
+					// }
+					// }
+				}
+
+			}
+			pathValue[j] = counter;
+			previous = next[j];
+			System.out.println(j);
+		}
+
+		int min = 0;
+		int max = 0;
+		int move = -1;
+		for (int i = 0; i < pathValue.length; i++) {
+			min = pathValue[i];
+			System.out.println("Min: " + min + " Max: " + max + " i: " + i);
+			if (min >= max) {
+				max = min;
+				move = i;
+			}
+		}
+		System.out.println("Max: " + max + " move: " + move);
+		System.out.println("Index: " + next[move]);
+		return next[move];
+	}
+
+	
+	
+	/*  ----------   */
+	
+	int[] Ghosts(Game game, int[] old, int zone) {
+
+		int ghostPosition[] = { 0, 0, 0, 0 };
+		int i = 0;
+		int oldX = 0;
+		int oldY = 0;
+		int newX = 0;
+		int newY = 0;
+		int results[] = { 0, // North
+				0, // East
+				0, // South
+				0 // West
+		};
+		/*
+		 * Might be possible to swap X and Y's with getGhostLastMoveMade
+		 */
+		for (Constants.GHOST c : Constants.GHOST.values()) {
+			ghostPosition[i] = game.getGhostCurrentNodeIndex(c);
+			newX = game.getNodeXCood(ghostPosition[i]);
+			newY = game.getNodeYCood(ghostPosition[i]);
+			oldX = game.getNodeXCood(old[i]);
+			oldY = game.getNodeYCood(old[i]);
+			int ghostZone = getQuadrant(newX, newY);
+			System.out.println("Zone: " + ghostZone);
+			System.out.println("PacMan Zone: " + zone);
+			/*
+			 * PacMan in the top left region
+			 */
+			if (zone == 0) {
+				if (ghostZone == 0) {
+					// Possibly have an immediate danger value
+				} else if (ghostZone == 1) {
+					// East variable set to 1
+					if (newX < oldX) {
+						results[1] = 1;
+					}
+				} else if (ghostZone == 2) {
+					// South variable set to 1
+					if (newY < oldY) {
+						results[2] = 1;
+					}
+				} else if (ghostZone == 3) {
+					// South variable set to 1
+					if (newY < oldY) {
+						results[2] = 1;
+					}
+					// East variable set to 1
+					if (newX < oldX) {
+						results[1] = 1;
+					}
+				} else {
+					// Possibly inbetween regions
+				}
+			}
+			/*
+			 * PacMan in the top right region
+			 */
+			else if (zone == 1) {
+				if (ghostZone == 0) {
+					// West variable set to 1
+					if (newX > oldX) {
+						results[3] = 1;
+					}
+				} else if (ghostZone == 1) {
+					// Again not sure
+				} else if (ghostZone == 2) {
+					// South variable set to 1
+					if (newY < oldY) {
+						results[2] = 1;
+					}
+					// West variable set to 1
+					if (newX > oldX) {
+						results[3] = 1;
+					}
+				} else if (ghostZone == 3) {
+					// South variable set to 1
+					if (newY < oldY) {
+						results[2] = 1;
+					}
+				}
+
+			}
+			/*
+			 * PacMan in the bottom left region
+			 */
+			else if (zone == 2) {
+				if (ghostZone == 0) {
+					// North variable set to 1
+					if (newY > oldY) {
+						results[0] = 1;
+					}
+				} else if (ghostZone == 1) {
+					// East variable set to 1
+					if (newX < oldX) {
+						results[1] = 1;
+					}
+					// North variable set to 1
+					if (newY > oldY) {
+						results[0] = 1;
+					}
+				} else if (ghostZone == 2) {
+					// Again not sure
+				} else if (ghostZone == 3) {
+					// East variable set to 1
+					if (newX < oldX) {
+						results[1] = 1;
+					}
+				}
+			}
+			/*
+			 * PacMan in the bottom right region
+			 */
+			else if (zone == 3) {
+				if (ghostZone == 0) {
+					// West variable set to 1
+					if (newX > oldX) {
+						results[3] = 1;
+					}
+					// North variable set to 1
+					if (newY > oldY) {
+						results[0] = 1;
+					}
+				} else if (ghostZone == 1) {
+					// North variable set to 1
+					if (newY > oldY) {
+						results[0] = 1;
+					}
+				} else if (ghostZone == 2) {
+					// West variable set to 1
+					if (newX > oldX) {
+						results[3] = 1;
+					}
+				} else if (ghostZone == 3) {
+					// Again not sure
+				}
+			}
+			else{
+				System.out.println("Should not reach me EVER");
+			}
+
+				i++;
+		}
+		return results;
+	}
